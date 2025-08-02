@@ -3,8 +3,8 @@ version: '3'
 services:
   chatwoot:
     build:
-      context: ./chatwoot/docker
-      dockerfile: Dockerfile
+      context: ./chatwoot
+      dockerfile: docker/Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
       - 'FRONTEND_URL=https://chat.neosolucoes.net'
@@ -56,7 +56,7 @@ services:
   sidekiq:
     build:
       context: ./chatwoot
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
       - 'FRONTEND_URL=https://chat.neosolucoes.net'
