@@ -2,7 +2,9 @@ version: '3'
 
 services:
   chatwoot:
-    image: 'chatwoot/chatwoot:v4.4.0'
+    build:
+      context: ./chatwoot
+      dockerfile: Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
       - 'FRONTEND_URL=https://chat.neosolucoes.net'
@@ -28,7 +30,7 @@ services:
       - 'SMTP_PASSWORD=${CHATWOOT_SMTP_PASSWORD}'
       - 'ACTIVE_STORAGE_SERVICE=${ACTIVE_STORAGE_SERVICE:-local}'
     entrypoint: docker/entrypoints/rails.sh
-    command: 'sh -c "bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0"'
+    command: sh -c "bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0"
     volumes:
       - 'rails-data:/app/storage'
     healthcheck:
@@ -50,8 +52,11 @@ services:
       - traefik.http.routers.chat.entrypoints=websecure
       - traefik.http.routers.chat.tls=true
       - traefik.http.services.chat.loadbalancer.server.port=3000
+
   sidekiq:
-    image: 'chatwoot/chatwoot:v4.4.0'
+    build:
+      context: ./chatwoot
+      dockerfile: Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
       - 'FRONTEND_URL=https://chat.neosolucoes.net'
@@ -93,9 +98,11 @@ services:
       retries: 3
     networks:
       - coolify
+
 networks:
   coolify:
     external: true
+
 volumes:
   rails-data: null
   postgres-data: null
