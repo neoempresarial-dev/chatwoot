@@ -1,1 +1,1 @@
-console.log("Dá certo, por favor");
+console.log("Dá certo");
