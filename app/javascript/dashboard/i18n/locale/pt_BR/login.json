@@ -1,9 +1,9 @@
 {
   "LOGIN": {
-    "TITLE": "Entrar no Chatwoot",
+    "TITLE": "Entrar no Neo Chat",
     "EMAIL": {
       "LABEL": "e-mail",
-      "PLACEHOLDER": "nome{'@'}empresa.com.br",
+      "PLACEHOLDER": "contato{'@'}neosolucoes.net",
       "ERROR": "Digite um endereço de endereço eletrônico válido"
     },
     "PASSWORD": {
