@@ -3,7 +3,7 @@ version: '3'
 services:
   chatwoot:
     build:
-      context: ./chatwoot
+      context: ./chatwoot/docker
       dockerfile: Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
