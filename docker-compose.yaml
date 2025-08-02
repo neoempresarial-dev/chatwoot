@@ -3,7 +3,7 @@ version: '3'
 services:
   chatwoot:
     build:
-      context: ./chatwoot
+      context: .
       dockerfile: docker/Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
@@ -55,7 +55,7 @@ services:
 
   sidekiq:
     build:
-      context: ./chatwoot
+      context: .
       dockerfile: docker/Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
