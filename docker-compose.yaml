@@ -12,7 +12,7 @@ services:
       - 'FORCE_SSL=${FORCE_SSL:-false}'
       - 'ENABLE_ACCOUNT_SIGNUP=${ENABLE_ACCOUNT_SIGNUP:-false}'
       - 'REDIS_URL=redis://default:${SERVICE_PASSWORD_REDIS}@dgc8wcw04g4kkckws488sggw:6379/0'
-      - 'POSTGRES_DATABASE=${POSTGRES_DB:-chatwoot_production}'
+      - 'POSTGRES_DATABASE=${POSTGRES_DB:-neochat_production}'
       - POSTGRES_HOST=okocw0ko8sgkcsks8owgss8k
       - 'POSTGRES_USERNAME=${SERVICE_USER_POSTGRES}'
       - 'POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}'
@@ -64,7 +64,7 @@ services:
       - 'FORCE_SSL=${FORCE_SSL:-false}'
       - 'ENABLE_ACCOUNT_SIGNUP=${ENABLE_ACCOUNT_SIGNUP:-false}'
       - 'REDIS_URL=redis://default:${SERVICE_PASSWORD_REDIS}@dgc8wcw04g4kkckws488sggw:6379/0'
-      - 'POSTGRES_DATABASE=${POSTGRES_DB:-chatwoot_production}'
+      - 'POSTGRES_DATABASE=${POSTGRES_DB:-neochat_production}'
       - POSTGRES_HOST=okocw0ko8sgkcsks8owgss8k
       - 'POSTGRES_USERNAME=${SERVICE_USER_POSTGRES}'
       - 'POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}'
