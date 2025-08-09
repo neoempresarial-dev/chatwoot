@@ -10,7 +10,7 @@ const props = defineProps({
   modelValue: { type: String, default: '' },
   label: { type: String, default: '' },
   placeholder: { type: String, default: '' },
-  maxLength: { type: Number, default: 200 },
+  maxLength: { type: Number, default: 10000 },
   id: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
   customTextAreaClass: { type: String, default: '' },
