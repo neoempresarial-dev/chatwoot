@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   chatwoot:
     build:
@@ -7,19 +6,20 @@ services:
       dockerfile: docker/Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
-      - 'FRONTEND_URL=https://chat.neosolucoes.net'
+      - 'FRONTEND_URL=${SERVICE_URL_CHATWOOT}'
       - 'DEFAULT_LOCALE=${CHATWOOT_DEFAULT_LOCALE}'
       - 'FORCE_SSL=${FORCE_SSL:-false}'
       - 'ENABLE_ACCOUNT_SIGNUP=${ENABLE_ACCOUNT_SIGNUP:-false}'
       - 'REDIS_URL=redis://default:${SERVICE_PASSWORD_REDIS}@dss0k0oow88ggw0ksk04w4o8:6379/0'
       - 'POSTGRES_DATABASE=${POSTGRES_DB:-neochat_production}'
-      - POSTGRES_HOST=okocw0ko8sgkcsks8owgss8k
+      - 'POSTGRES_HOST=${POSTGRES_HOST}'
       - 'POSTGRES_USERNAME=${SERVICE_USER_POSTGRES}'
       - 'POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}'
-      - 'RAILS_MAX_THREADS=${RAILS_MAX_THREADS:-5}'
-      - NODE_ENV=production
-      - RAILS_ENV=production
-      - INSTALLATION_ENV=docker
+      # AUMENTO DE PERFORMANCE E TIMEOUTS
+      - 'RAILS_MAX_THREADS=${RAILS_MAX_THREADS:-15}' # Aumentado para aguentar requisições simultâneas
+      - 'NODE_ENV=production'
+      - 'RAILS_ENV=production'
+      - 'INSTALLATION_ENV=docker'
       - 'MAILER_SENDER_EMAIL=${CHATWOOT_MAILER_SENDER_EMAIL}'
       - 'SMTP_ADDRESS=${CHATWOOT_SMTP_ADDRESS}'
       - 'SMTP_AUTHENTICATION=${CHATWOOT_SMTP_AUTHENTICATION}'
@@ -29,29 +29,39 @@ services:
       - 'SMTP_USERNAME=${CHATWOOT_SMTP_USERNAME}'
       - 'SMTP_PASSWORD=${CHATWOOT_SMTP_PASSWORD}'
       - 'ACTIVE_STORAGE_SERVICE=${ACTIVE_STORAGE_SERVICE:-local}'
+      # CORREÇÕES CRÍTICAS
+      - 'TZ=UTC' 
+      - 'RAILS_LOG_TO_STDOUT=true'
+      - 'DB_POOL=25' # Aumentado drásticamente para suportar threads e sidekiq
+      - 'PUMA_TIMEOUT_CONTROL=300' # Permite requisições de até 5 minutos (útil para uploads lentos)
     entrypoint: docker/entrypoints/rails.sh
-    command: sh -c "bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0"
+    command: 'sh -c "bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0"'
     volumes:
       - 'rails-data:/app/storage'
     healthcheck:
-      test:
-        - CMD
-        - wget
-        - '--spider'
-        - '-q'
-        - 'http://127.0.0.1:3000'
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ['CMD', 'wget', '--spider', '-q', 'http://127.0.0.1:3000']
+      # Healthcheck MUITO relaxado para não reiniciar durante uploads pesados
+      interval: 60s 
+      timeout: 30s
+      retries: 10
+      start_period: 60s
     networks:
       - coolify
     labels:
       - coolify.managed=true
       - traefik.enable=true
-      - traefik.http.routers.chat.rule=Host(chat.neosolucoes.net)
+      # Configurações Padrão
+      - traefik.http.routers.chat.rule=Host(`chat.neosolucoes.net`)
       - traefik.http.routers.chat.entrypoints=websecure
       - traefik.http.routers.chat.tls=true
       - traefik.http.services.chat.loadbalancer.server.port=3000
+      # --- AQUI ESTÁ O SEGREDO PARA ARQUIVOS ---
+      # Cria um middleware chamado 'chatwoot-limits'
+      - "traefik.http.middlewares.chatwoot-limits.buffering.maxRequestBodyBytes=157286400" # Limite de 150MB
+      - "traefik.http.middlewares.chatwoot-limits.buffering.memRequestBodyBytes=157286400"
+      - "traefik.http.middlewares.chatwoot-limits.buffering.maxResponseBodyBytes=157286400"
+      # Aplica o middleware ao router
+      - "traefik.http.routers.chat.middlewares=chatwoot-limits"
 
   sidekiq:
     build:
@@ -59,19 +69,19 @@ services:
       dockerfile: docker/Dockerfile
     environment:
       - 'SECRET_KEY_BASE=${SERVICE_PASSWORD_CHATWOOT}'
-      - 'FRONTEND_URL=https://chat.neosolucoes.net'
+      - 'FRONTEND_URL=${SERVICE_URL_CHATWOOT}'
       - 'DEFAULT_LOCALE=${CHATWOOT_DEFAULT_LOCALE}'
       - 'FORCE_SSL=${FORCE_SSL:-false}'
       - 'ENABLE_ACCOUNT_SIGNUP=${ENABLE_ACCOUNT_SIGNUP:-false}'
       - 'REDIS_URL=redis://default:${SERVICE_PASSWORD_REDIS}@dss0k0oow88ggw0ksk04w4o8:6379/0'
       - 'POSTGRES_DATABASE=${POSTGRES_DB:-neochat_production}'
-      - POSTGRES_HOST=okocw0ko8sgkcsks8owgss8k
+      - 'POSTGRES_HOST=${POSTGRES_HOST}'
       - 'POSTGRES_USERNAME=${SERVICE_USER_POSTGRES}'
       - 'POSTGRES_PASSWORD=${SERVICE_PASSWORD_POSTGRES}'
-      - RAILS_MAX_THREADS=5
-      - NODE_ENV=production
-      - RAILS_ENV=production
-      - INSTALLATION_ENV=docker
+      - 'RAILS_MAX_THREADS=${RAILS_MAX_THREADS:-15}'
+      - 'NODE_ENV=production'
+      - 'RAILS_ENV=production'
+      - 'INSTALLATION_ENV=docker'
       - 'MAILER_SENDER_EMAIL=${CHATWOOT_MAILER_SENDER_EMAIL}'
       - 'SMTP_ADDRESS=${CHATWOOT_SMTP_ADDRESS}'
       - 'SMTP_AUTHENTICATION=${CHATWOOT_SMTP_AUTHENTICATION}'
@@ -80,29 +90,25 @@ services:
       - 'SMTP_PORT=${CHATWOOT_SMTP_PORT}'
       - 'SMTP_USERNAME=${CHATWOOT_SMTP_USERNAME}'
       - 'SMTP_PASSWORD=${CHATWOOT_SMTP_PASSWORD}'
-      - ACTIVE_STORAGE_SERVICE=local
-    command:
-      - bundle
-      - exec
-      - sidekiq
-      - '-C'
-      - config/sidekiq.yml
+      - 'ACTIVE_STORAGE_SERVICE=${ACTIVE_STORAGE_SERVICE:-local}'
+      - 'TZ=UTC'
+      # CONFIGURAÇÕES DE FORÇA BRUTA
+      - 'DB_POOL=25'
+      - 'SIDEKIQ_CONCURRENCY=20' # Processa 20 jobs simultâneos
+    command: ['bundle', 'exec', 'sidekiq', '-C', 'config/sidekiq.yml']
     volumes:
       - 'rails-data:/app/storage'
     healthcheck:
-      test:
-        - CMD-SHELL
-        - 'ps aux | grep "[s]idekiq" > /dev/null || exit 1'
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ['CMD-SHELL', 'ps aux | grep "[s]idekiq" > /dev/null || exit 1']
+      interval: 60s
+      timeout: 30s
+      retries: 5
     networks:
       - coolify
 
 networks:
   coolify:
     external: true
-
 volumes:
   rails-data: null
   postgres-data: null
